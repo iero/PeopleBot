@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<data>
+  <service name="slack">
+    <bot_token>xoxb-XXXXX-XXXXXXXXXXXXXXXkeC4</bot_token>
+    <bot_name>people</bot_name>
+    <bot_id>XXXXXXXXX</bot_id>
+  </service>
+
+  <service name="people">
+    <url_site>https://people.total</url_site>
+    <url_req>https://people.total/api/v1/</url_req>
+    <url_auth>https://people.total/oauth/authorize</url_auth>
+    <url_token>https://people.total/oauth/token</url_token>
+    <url_redir>urn:ietf:wg:oauth:2.0:oob</url_redir>
+    <api_id>78e646e106fdXXXXXXXXXXXXXXXXXXXXXXXXXXXX8ff767b73cece63b</api_id>
+    <api_secret>388bb49ef8XXXXXXXXXXXXXXXf46961f076842abf0d2951e1f7f</api_secret>
+    <api_username>prenom.nom@total.com</api_username>
+    <api_pwd>XXXXXXXXX</api_pwd>
+  </service>
+</data>
