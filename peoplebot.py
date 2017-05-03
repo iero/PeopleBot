@@ -14,6 +14,11 @@ import urllib.parse
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
 
+#get authentication fron the authentication URL.
+#The people api, at the first authentication, request a user/password over
+#a login page. This function below go through the login page and play the give
+# user/password.
+
 def getAuth(authorization_url, people_username, people_password) :
     #print(entry_domain)
     client = requests.session()
@@ -49,8 +54,13 @@ def getAuth(authorization_url, people_username, people_password) :
 
     return code
 
-#--------------
-#retrieve profile from ID
+
+#retrieve person profile from ID in people database
+
+#simple function to retrieve the profile of a person from people database,
+#using its ID in the database.
+# retrieve_people(ID), where ID is a digits. Example: retrieve_people(1)
+
 def retrieve_people(ID):
     #"""
     #        Retrieve the profile of a person from its ID
@@ -62,15 +72,17 @@ def retrieve_people(ID):
     response = response.decode("utf-8")
     json_decode=json.loads(response)
 
-    #text response creation
+    #create the text of the slackbot response.
     textresponse="I gess you are looking for (best match):"
     #print(json_decode['first_name'])
 
-    #create attachements
+    #create attachements in the slackbot response.
     #print(json_decode["jobs"])
     result=[]
     my_dict={}
     my_dict["title"]=json_decode['first_name'] + " " + json_decode["last_name"]
+    #check if 'the' jobs section in people database is populate for the given person.
+    #if not, retrive only its 'title'
     if json_decode["jobs"]:
         my_dict["text"]=json_decode["job_title"] + " - " + json_decode["jobs"][0]["description"]
     else:
@@ -89,8 +101,17 @@ def retrieve_people(ID):
 
     return textresponse, attachments
 
-#--------------
+
 #retrieve list of people
+
+#simple function to retrieve a list of people from people database,
+#using the search api of the application.
+# retrieve_people(url, search_string, action), where :
+#       - 'url' is the url of the api,
+#       - 'search' string is the message ask to the bot by the end user over the slack interface
+#       - 'action' is a word of the sentence. It will be removed from the search string.
+
+
 def search_people(url, search_string, action):
     """
     Retrieve a list of people through a search in people
@@ -220,7 +241,7 @@ if __name__ == "__main__":
 
     READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
-        print("StarterBot connected and running!")
+        print("PeopleBot connected and running!")
         while True:
             try :
                 command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
