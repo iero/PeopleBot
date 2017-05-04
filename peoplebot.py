@@ -54,6 +54,26 @@ def getAuth(authorization_url, people_username, people_password) :
 
     return code
 
+def getStats() :
+    authorization_response=oauth.get('https://people.total/api/v1/statistics')
+    response = authorization_response.content
+    print(response)
+    response = response.decode("utf-8")
+    json_decode=json.loads(response)
+
+    result=[]
+    my_dict={}
+    my_dict["users"]=json_decode['users']['total_count']
+    # for u in json_decode['users'] :
+    #     for s in u :
+    #         print("+-[{}] {}".format(s,u[s]))
+
+    result.append(my_dict)
+    attachments=json.dumps(result)
+
+    textresponse="Tada :"
+
+    return textresponse, attachments
 
 #retrieve person profile from ID in people database
 
@@ -61,12 +81,12 @@ def getAuth(authorization_url, people_username, people_password) :
 #using its ID in the database.
 # retrieve_people(ID), where ID is a digits. Example: retrieve_people(1)
 
-def retrieve_people(ID):
+def retrieve_people(url,ID):
     #"""
     #        Retrieve the profile of a person from its ID
     #        returns back a text, and attachment for the person.
     #"""
-    authorization_response=oauth.get('https://people.total/api/v1/users/'+str(ID))
+    authorization_response=oauth.get(url+"/users/"+str(ID))
     response = authorization_response.content
     #print(response)
     response = response.decode("utf-8")
@@ -174,7 +194,7 @@ def handle_command(url, command, channel):
 
     elif command.startswith("who is") or command.startswith("whois"):
         response, attachement, first_id = search_people(url,command, "who is")
-        response, attachement = retrieve_people(first_id)
+        response, attachement = retrieve_people(url,first_id)
 
     elif command.startswith("search"):
         print(command)
