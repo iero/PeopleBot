@@ -127,21 +127,9 @@ def retrieve_people(url,ID):
 
     return textresponse, attachments
 
-
-#retrieve list of people
-
-#simple function to retrieve a list of people from people database,
-#using the search api of the application.
-# retrieve_people(url, search_string, action), where :
-#       - 'url' is the url of the api,
-#       - 'search' string is the message ask to the bot by the end user over the slack interface
-#       - 'action' is a word of the sentence. It will be removed from the search string.
-
 def getHelp(url) :
-    #response creation
     textresponse="Commands available (examples) : \n"
 
-    #create attachements
     result=[]
 
     my_dict={}
@@ -161,6 +149,15 @@ def getHelp(url) :
     attachments=json.dumps(result)
 
     return textresponse, attachments
+
+#retrieve list of people
+
+#simple function to retrieve a list of people from people database,
+#using the search api of the application.
+# retrieve_people(url, search_string, action), where :
+#       - 'url' is the url of the api,
+#       - 'search' string is the message ask to the bot by the end user over the slack interface
+#       - 'action' is a word of the sentence. It will be removed from the search string.
 
 
 def search_people(url, search_string, action):
