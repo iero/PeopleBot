@@ -80,23 +80,29 @@ def retrieve_people(ID):
     #print(json_decode["jobs"])
     result=[]
     my_dict={}
-    my_dict["title"]=json_decode['first_name'] + " " + json_decode["last_name"]
+    my_dict["author_name"]=json_decode['first_name'] + " " + json_decode["last_name"]
+    my_dict["author_link"]="https://people.total/p/" + json_decode["slugged_id"]
+    my_dict["attachment_type"]="default"
+    my_dict["short"]="true"
     #check if 'the' jobs section in people database is populate for the given person.
     #if not, retrive only its 'title'
     if json_decode["jobs"]:
         my_dict["text"]=json_decode["job_title"] + " - " + json_decode["jobs"][0]["description"]
     else:
         my_dict["text"]=json_decode["job_title"]
+
     my_dict["color"]="#3AA3E3"
     my_dict["attachment_type"]="default"
     my_dict["fields"]=[{"title": "phone","value": json_decode["phone"],"short": "true" }, \
         {"title": "entity","value": json_decode["entity"],"short": "true" }, \
         {"title": "office address","value": json_decode["office_address"],"short": "true" }]
+    my_dict["thumb_url"]=json_decode['picture_url']
     my_dict["footer"]="people.total"
     my_dict["ts"]=time.time()
     #print(my_dict)
 
     result.append(my_dict)
+    #print(result)
     attachments=json.dumps(result)
 
     return textresponse, attachments
@@ -143,6 +149,7 @@ def search_people(url, search_string, action):
         #print(my_dict)
         result.append(my_dict)
 
+    print(result)
     attachments=json.dumps(result)
 
     first_id = json_decode[0]["id"]
