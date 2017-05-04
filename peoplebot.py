@@ -152,6 +152,12 @@ def getHelp(url) :
 
     return textresponse, attachments
 
+def search_slack_user(user) :
+        if (search_string.startswith('@')) :
+            print('look for user '+search_string)
+            api_call = slack_client.api_call("users.list")
+
+
 #retrieve list of people
 
 #simple function to retrieve a list of people from people database,
@@ -161,22 +167,24 @@ def getHelp(url) :
 #       - 'search' string is the message ask to the bot by the end user over the slack interface
 #       - 'action' is a word of the sentence. It will be removed from the search string.
 
-
-def search_people(url, search_string, action):
+def search_people(url, search_string):
     """
     Retrieve a list of people through a search in people
     The command action is remove from the search string
     returns back a text, an attachment per person, and the id of the first one.
     """
-    authorization_response=oauth.get(url+'/users/search/{'+ search_string.replace(action,'') + '}')
+    search_string.replace(' ','+')
+    authorization_response=oauth.get(url+'/users/search/{'+ search_string + '}')
     response = authorization_response.content
     response = response.decode("utf-8")
     json_decode=json.loads(response)
 
-
-    #response creation
-    textresponse="Here are the people for your search: *" + search_string.replace('search','') + "*\n"
-    #print(textresponse)
+    print(len(json_decode))
+    if len(json_decode) == 0 :
+        textresponse="Nobody found"
+    else :
+        textresponse=" I found {} people for your search *{}*\n".format(len(json_decode),search_string)
+    print(textresponse)
 
     #create attachements
     result=[]
@@ -197,29 +205,32 @@ def search_people(url, search_string, action):
 
     print(result)
     attachments=json.dumps(result)
-    first_id = json_decode[0]["id"]
+    if (len(json_decode) > 0) :
+        first_id = json_decode[0]["id"]
+    else :
+        first_id = None
     return textresponse, attachments, first_id
 
-def handle_command(url, command, channel):
+def handle_command(url, slack_client, command, channel):
     """
         Receives commands directed at the bot and determines if they
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
     """
-    EXAMPLE_COMMAND = "search"
-
-    response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
-               "* command with numbers, delimited by spaces."
 
     if command.startswith("help"):
         response, attachement = getHelp(url)
+
     elif command.startswith("who is"):
-        response, attachement, first_id = search_people(url,command, "who is")
+        arg = command.replace("who is ",'')
+        response, attachement, first_id = search_people(url,arg)
         response, attachement = retrieve_people(url,first_id)
 
     elif command.startswith("search"):
-        print(command)
-        response, attachement, first_id = search_people(url,command, "search")
+        arg = command.replace("search ",'')
+        # if arg.startswith('@') :
+        #     api_call = slack_client.api_call("users.list")
+        response, attachement, first_id = search_people(url,arg)
 
     else:
         response = "I don't know... Use *search* or *who is* commands, and I will look for you!"
@@ -241,7 +252,7 @@ def parse_slack_output(bot_id, slack_rtm_output):
     if output_list and len(output_list) > 0:
         for output in output_list:
             if output and 'text' in output and AT_BOT in output['text']:
-                # return text after the @ mention, whitespace removed
+                # return text after the @mention, whitespace removed
                 return output['text'].split(AT_BOT)[1].strip().lower(), \
                        output['channel']
     return None, None
@@ -292,9 +303,9 @@ if __name__ == "__main__":
         print("PeopleBot connected and running!")
         while True:
             command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
-            line = parse_slack_output(bot_id, slack_client.rtm_read())
             if command and channel:
-                handle_command(people_url_req, command, channel)
+                print("+-[{}] {}".format(command,channel))
+                handle_command(people_url_req, slack_client, command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
