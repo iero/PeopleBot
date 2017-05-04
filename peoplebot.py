@@ -186,8 +186,7 @@ def search_people(url, search_string, action):
         #my_dict["callback_id"]="people_userid"
         my_dict["color"]="#3AA3E3"
         my_dict["attachment_type"]="default"
-        my_dict["author_link"]="https://people.total/p/" + json_decode["slugged_id"]
-
+        
         #pour ajouter un bouton, mais seul les app slack le permettent
         #my_dict["actions"]=[{"name": "user","text": "More info...","type": "button","value":  str(item.get("id")) }]
         #print(my_dict)
