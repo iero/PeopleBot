@@ -137,6 +137,31 @@ def retrieve_people(url,ID):
 #       - 'search' string is the message ask to the bot by the end user over the slack interface
 #       - 'action' is a word of the sentence. It will be removed from the search string.
 
+def getHelp(url) :
+    #response creation
+    textresponse="Commands available (examples) : \n"
+
+    #create attachements
+    result=[]
+
+    my_dict={}
+    my_dict["color"]="#3AA3E3"
+    my_dict["attachment_type"]="default"
+    my_dict["title"]="@people who is greg"
+    my_dict["text"]="I'm lucky"
+    result.append(my_dict)
+
+    my_dict={}
+    my_dict["color"]="#3AA3E3"
+    my_dict["attachment_type"]="default"
+    my_dict["title"]="@people search david"
+    my_dict["text"]="Look for all david"
+    result.append(my_dict)
+
+    attachments=json.dumps(result)
+
+    return textresponse, attachments
+
 
 def search_people(url, search_string, action):
     """
@@ -164,6 +189,8 @@ def search_people(url, search_string, action):
         #my_dict["callback_id"]="people_userid"
         my_dict["color"]="#3AA3E3"
         my_dict["attachment_type"]="default"
+        my_dict["author_link"]="https://people.total/p/" + json_decode["slugged_id"]
+
         #pour ajouter un bouton, mais seul les app slack le permettent
         #my_dict["actions"]=[{"name": "user","text": "More info...","type": "button","value":  str(item.get("id")) }]
         #print(my_dict)
@@ -189,9 +216,7 @@ def handle_command(url, command, channel):
                "* command with numbers, delimited by spaces."
 
     if command.startswith("help"):
-        response = "Sure... Use *search* or *who is* commands, and I will look for you!"
-        attachement = ""
-
+        response, attachement = getHelp(url)
     elif command.startswith("who is") or command.startswith("whois"):
         response, attachement, first_id = search_people(url,command, "who is")
         response, attachement = retrieve_people(url,first_id)
@@ -270,13 +295,10 @@ if __name__ == "__main__":
     if slack_client.rtm_connect():
         print("PeopleBot connected and running!")
         while True:
-            try :
-                command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
-                line = parse_slack_output(bot_id, slack_client.rtm_read())
-                if command and channel:
-                    handle_command(people_url_req, command, channel)
-                time.sleep(READ_WEBSOCKET_DELAY)
-            except :
-                print("Hang")
+            command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
+            line = parse_slack_output(bot_id, slack_client.rtm_read())
+            if command and channel:
+                handle_command(people_url_req, command, channel)
+            time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
