@@ -106,10 +106,12 @@ def retrieve_people(url,ID):
     my_dict["short"]="true"
     #check if 'the' jobs section in people database is populate for the given person.
     #if not, retrive only its 'title'
-    if json_decode["jobs"]:
-        my_dict["text"]=json_decode["job_title"] + " - " + json_decode["jobs"][0]["description"]
-    else:
-        my_dict["text"]=json_decode["job_title"]
+
+    # if json_decode["jobs"]:
+    #     my_dict["text"]=json_decode["job_title"] + " - " + json_decode["jobs"][0]["description"]
+    # else:
+    #     my_dict["text"]=json_decode["job_title"]
+    my_dict["text"]=json_decode["job_title"]
 
     my_dict["color"]="#3AA3E3"
     my_dict["attachment_type"]="default"
@@ -186,19 +188,17 @@ def search_people(url, search_string, action):
         #my_dict["callback_id"]="people_userid"
         my_dict["color"]="#3AA3E3"
         my_dict["attachment_type"]="default"
-        
+
         #pour ajouter un bouton, mais seul les app slack le permettent
         #my_dict["actions"]=[{"name": "user","text": "More info...","type": "button","value":  str(item.get("id")) }]
+
         #print(my_dict)
         result.append(my_dict)
 
     print(result)
     attachments=json.dumps(result)
-
     first_id = json_decode[0]["id"]
-
     return textresponse, attachments, first_id
-
 
 def handle_command(url, command, channel):
     """
@@ -213,7 +213,7 @@ def handle_command(url, command, channel):
 
     if command.startswith("help"):
         response, attachement = getHelp(url)
-    elif command.startswith("who is") or command.startswith("whois"):
+    elif command.startswith("who is"):
         response, attachement, first_id = search_people(url,command, "who is")
         response, attachement = retrieve_people(url,first_id)
 
