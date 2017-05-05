@@ -14,6 +14,35 @@ import urllib.parse
 from urllib.request import Request, urlopen
 from urllib.parse import urlparse
 
+
+def getwit(text):
+    WIT_TOKEN = "PBXCE52CTCMW46G35P2X5JPTPHXNV3B6"
+    headers = {
+        'Authorization': 'Bearer ' + WIT_TOKEN,
+    }
+
+    params = (
+        ('v', '20170505'),
+        ('q', text),
+    )
+
+    resp = requests.get('https://api.wit.ai/message', headers=headers, params=params)
+    content=resp.content
+    content = content.decode("utf-8")
+    json_decode=json.loads(content)
+    #print(json_decode)
+
+    person = json_decode["entities"]["contact"][0]["value"]
+    person_confidence = json_decode["entities"]["contact"][0]["confidence"]
+    action = json_decode["entities"]["intent"][0]["value"]
+    action_confidence = json_decode["entities"]["intent"][0]["confidence"]
+
+    #print(person, person_confidence, action, action_confidence)
+
+    return person, person_confidence, action, action_confidence
+
+
+
 #get authentication fron the authentication URL.
 #The people api, at the first authentication, request a user/password over
 #a login page. This function below go through the login page and play the give
@@ -54,26 +83,6 @@ def getAuth(authorization_url, people_username, people_password) :
 
     return code
 
-def getStats() :
-    authorization_response=oauth.get('https://people.total/api/v1/statistics')
-    response = authorization_response.content
-    print(response)
-    response = response.decode("utf-8")
-    json_decode=json.loads(response)
-
-    result=[]
-    my_dict={}
-    my_dict["users"]=json_decode['users']['total_count']
-    # for u in json_decode['users'] :
-    #     for s in u :
-    #         print("+-[{}] {}".format(s,u[s]))
-
-    result.append(my_dict)
-    attachments=json.dumps(result)
-
-    textresponse="Tada :"
-
-    return textresponse, attachments
 
 #retrieve person profile from ID in people database
 
@@ -81,12 +90,12 @@ def getStats() :
 #using its ID in the database.
 # retrieve_people(ID), where ID is a digits. Example: retrieve_people(1)
 
-def retrieve_people(url,ID):
+def retrieve_people(ID):
     #"""
     #        Retrieve the profile of a person from its ID
     #        returns back a text, and attachment for the person.
     #"""
-    authorization_response=oauth.get(url+"/users/"+str(ID))
+    authorization_response=oauth.get('https://people.total/api/v1/users/'+str(ID))
     response = authorization_response.content
     #print(response)
     response = response.decode("utf-8")
@@ -106,12 +115,10 @@ def retrieve_people(url,ID):
     my_dict["short"]="true"
     #check if 'the' jobs section in people database is populate for the given person.
     #if not, retrive only its 'title'
-
-    # if json_decode["jobs"]:
-    #     my_dict["text"]=json_decode["job_title"] + " - " + json_decode["jobs"][0]["description"]
-    # else:
-    #     my_dict["text"]=json_decode["job_title"]
-    my_dict["text"]=json_decode["job_title"]
+    if json_decode["jobs"]:
+        my_dict["text"]=json_decode["job_title"] + " - " + json_decode["jobs"][0]["description"]
+    else:
+        my_dict["text"]=json_decode["job_title"]
 
     my_dict["color"]="#3AA3E3"
     my_dict["attachment_type"]="default"
@@ -129,28 +136,6 @@ def retrieve_people(url,ID):
 
     return textresponse, attachments
 
-def getHelp(url) :
-    textresponse="Commands available (examples) : \n"
-
-    result=[]
-
-    my_dict={}
-    my_dict["color"]="#3AA3E3"
-    my_dict["attachment_type"]="default"
-    my_dict["title"]="@people who is greg"
-    my_dict["text"]="I'm lucky"
-    result.append(my_dict)
-
-    my_dict={}
-    my_dict["color"]="#3AA3E3"
-    my_dict["attachment_type"]="default"
-    my_dict["title"]="@people search david"
-    my_dict["text"]="Look for all david"
-    result.append(my_dict)
-
-    attachments=json.dumps(result)
-
-    return textresponse, attachments
 
 #retrieve list of people
 
@@ -188,17 +173,51 @@ def search_people(url, search_string, action):
         #my_dict["callback_id"]="people_userid"
         my_dict["color"]="#3AA3E3"
         my_dict["attachment_type"]="default"
-
         #pour ajouter un bouton, mais seul les app slack le permettent
         #my_dict["actions"]=[{"name": "user","text": "More info...","type": "button","value":  str(item.get("id")) }]
-
         #print(my_dict)
         result.append(my_dict)
 
     print(result)
     attachments=json.dumps(result)
+
     first_id = json_decode[0]["id"]
+
     return textresponse, attachments, first_id
+
+def get_phone(ID):
+    #"""
+    #        Retrieve the phone number of a person from its ID
+    #        returns back a text, and attachment for the person.
+    #"""
+    authorization_response=oauth.get('https://people.total/api/v1/users/'+str(ID))
+    response = authorization_response.content
+    #print(response)
+    response = response.decode("utf-8")
+    json_decode=json.loads(response)
+
+    #create the text of the slackbot response.
+    textresponse="Here is the phone number you are looking for: *" + json_decode["phone"] + "*"
+    #print(json_decode['first_name'])
+
+    #create attachements in the slackbot response.
+    #print(json_decode["jobs"])
+    result=[]
+    my_dict={}
+    my_dict["author_name"]=json_decode['first_name'] + " " + json_decode["last_name"]
+    my_dict["author_link"]="https://people.total/p/" + json_decode["slugged_id"]
+    my_dict["attachment_type"]="default"
+    my_dict["color"]="#3AA3E3"
+    my_dict["thumb_url"]=json_decode['picture_url']
+    my_dict["footer"]="people.total"
+    my_dict["ts"]=time.time()
+    #print(my_dict)
+
+    result.append(my_dict)
+    #print(result)
+    attachments=json.dumps(result)
+
+    return textresponse, attachments
 
 def handle_command(url, command, channel):
     """
@@ -212,18 +231,30 @@ def handle_command(url, command, channel):
                "* command with numbers, delimited by spaces."
 
     if command.startswith("help"):
-        response, attachement = getHelp(url)
-    elif command.startswith("who is"):
+        response = "Sure... Use *search* or *who is* commands, and I will look for you!"
+        attachement = ""
+
+    elif command.startswith("who is") or command.startswith("whois"):
         response, attachement, first_id = search_people(url,command, "who is")
-        response, attachement = retrieve_people(url,first_id)
+        response, attachement = retrieve_people(first_id)
 
     elif command.startswith("search"):
         print(command)
         response, attachement, first_id = search_people(url,command, "search")
 
     else:
-        response = "I don't know... Use *search* or *who is* commands, and I will look for you!"
-        attachement = ""
+        print(command)
+        person, person_confidence, action, action_confidence = getwit(command)
+        if action == "phone_get" and action_confidence > 0.7:
+            response, attachement, first_id = search_people(url,person, "")
+            response, attachement = get_phone(first_id)
+        elif action == "profile_get" and action_confidence > 0.7:
+            response, attachement, first_id = search_people(url,person, "")
+            response, attachement = retrieve_people(first_id)
+        else:
+            response = "I don't know... Use *search* or *who is* commands, and I will look for you!"
+            attachement = ""
+
 
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, attachments=attachement, as_user=True)
@@ -238,6 +269,7 @@ def parse_slack_output(bot_id, slack_rtm_output):
     AT_BOT = "<@" + bot_id + ">"
 
     output_list = slack_rtm_output
+    print(output_list)
     if output_list and len(output_list) > 0:
         for output in output_list:
             if output and 'text' in output and AT_BOT in output['text']:
@@ -291,10 +323,13 @@ if __name__ == "__main__":
     if slack_client.rtm_connect():
         print("PeopleBot connected and running!")
         while True:
-            command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
-            line = parse_slack_output(bot_id, slack_client.rtm_read())
-            if command and channel:
-                handle_command(people_url_req, command, channel)
-            time.sleep(READ_WEBSOCKET_DELAY)
+            try :
+                command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
+                line = parse_slack_output(bot_id, slack_client.rtm_read())
+                if command and channel:
+                    handle_command(people_url_req, command, channel)
+                time.sleep(READ_WEBSOCKET_DELAY)
+            except :
+                print("Hang")
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
