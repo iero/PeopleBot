@@ -225,7 +225,11 @@ def get_item(ID, item):
     #create the text of the slackbot response.
     if item == "phone_get":
         textresponse="Here is the phone number of " + json_decode['first_name']+ ": *" + json_decode["phone"] + "*"
-
+    elif item == "office_get":
+        textresponse="Here is the office of " + json_decode['first_name']+ ": *" + json_decode["office_address"] + "*"
+    elif item == "entity_get":
+        textresponse="The entity name of " + json_decode['first_name']+ "is: *" + json_decode["office_address"] + "*"
+        
     #create attachements in the slackbot response.
     result=[]
     my_dict={}
