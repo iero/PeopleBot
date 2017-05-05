@@ -211,6 +211,65 @@ def search_people(url, search_string):
         first_id = None
     return textresponse, attachments, first_id
 
+def get_item(ID, item):
+    """
+    Retrieve item from a person, when its ID is known.
+    returns back a text, an attachment per person.
+    """
+    authorization_response=oauth.get('https://people.total/api/v1/users/'+str(ID))
+    response = authorization_response.content
+    #print(response)
+    response = response.decode("utf-8")
+    json_decode=json.loads(response)
+
+    #create the text of the slackbot response.
+    if item == "phone_get":
+        textresponse="Here is the phone number of " + json_decode['first_name']+ ": *" + json_decode["phone"] + "*"
+
+    #create attachements in the slackbot response.
+    result=[]
+    my_dict={}
+    my_dict["author_name"]=json_decode['first_name'] + " " + json_decode["last_name"]
+    my_dict["author_link"]="https://people.total/p/" + json_decode["slugged_id"]
+    my_dict["attachment_type"]="default"
+    my_dict["color"]="#3AA3E3"
+    my_dict["thumb_url"]=json_decode['picture_url']
+    my_dict["footer"]="people.total"
+    my_dict["ts"]=time.time()
+    result.append(my_dict)
+
+    attachments=json.dumps(result)
+
+    return textresponse, attachments
+
+
+def getwit(text):
+    WIT_TOKEN = "PBXCE52CTCMW46G35P2X5JPTPHXNV3B6"
+    headers = {
+        'Authorization': 'Bearer ' + WIT_TOKEN,
+    }
+
+    params = (
+        ('v', '20170505'),
+        ('q', text),
+    )
+
+    #create request and retrieve info from wit
+    resp = requests.get('https://api.wit.ai/message', headers=headers, params=params)
+    content=resp.content
+    content = content.decode("utf-8")
+    json_decode=json.loads(content)
+
+    #retrieve people name and intent of the user
+    person = json_decode["entities"]["contact"][0]["value"]
+    person_confidence = json_decode["entities"]["contact"][0]["confidence"]
+    action = json_decode["entities"]["intent"][0]["value"]
+    action_confidence = json_decode["entities"]["intent"][0]["confidence"]
+
+
+    return person, person_confidence, action, action_confidence
+
+
 def handle_command(url, slack_client, command, channel):
     """
         Receives commands directed at the bot and determines if they
@@ -233,8 +292,17 @@ def handle_command(url, slack_client, command, channel):
         response, attachement, first_id = search_people(url,arg)
 
     else:
-        response = "I don't know... Use *search* or *who is* commands, and I will look for you!"
-        attachement = ""
+        person, person_confidence, action, action_confidence = getwit(command)
+        if action != "profile_get" and action_confidence > 0.7:
+            response, attachement, first_id = search_people(url,person)
+            response, attachement = get_item(first_id, action)
+        elif action == "profile_get" and action_confidence > 0.7:
+            response, attachement, first_id = search_people(url,person)
+            response, attachement = retrieve_people(url,first_id)
+        else:
+            response = "I don't know... Use *search* or *who is* commands, and I will look for you!"
+            attachement = ""
+
 
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, attachments=attachement, as_user=True)
