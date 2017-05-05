@@ -179,12 +179,12 @@ def search_people(url, search_string):
     response = response.decode("utf-8")
     json_decode=json.loads(response)
 
-    print(len(json_decode))
+    #print(len(json_decode))
     if len(json_decode) == 0 :
         textresponse="Nobody found"
     else :
-        textresponse=" I found {} people for your search *{}*\n".format(len(json_decode),search_string)
-    print(textresponse)
+        textresponse="I found {} people for your search *{}*\n".format(len(json_decode),search_string)
+    #print(textresponse)
 
     #create attachements
     result=[]
@@ -203,7 +203,7 @@ def search_people(url, search_string):
         #print(my_dict)
         result.append(my_dict)
 
-    print(result)
+    #print(result)
     attachments=json.dumps(result)
     if (len(json_decode) > 0) :
         first_id = json_decode[0]["id"]
