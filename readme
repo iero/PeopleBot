@@ -15,5 +15,5 @@ https://www.fullstackpython.com/blog/build-first-slack-bot-python.html
 How to set up PeopleBot:
 1 - Setup Slack api
 2 - Create setting.xml
-3 - Launch # python peoplebot.py digital.xml 
-4 - enjoy
+3 - pip install slackclient
+5 - enjoy
