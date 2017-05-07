@@ -57,7 +57,7 @@ def getAuth(authorization_url, people_username, people_password) :
     return code
 
 def getStats() :
-    authorization_response=oauth.get(url+'/api/v1/statistics')
+    authorization_response=oauth.get(people_url_req+'/statistics')
     response = authorization_response.content
     print(response)
     response = response.decode("utf-8")
@@ -150,15 +150,15 @@ def getHelp(url) :
     my_dict={}
     my_dict["color"]="#3AA3E3"
     my_dict["attachment_type"]="default"
-    my_dict["title"]="@people What's the phone of Bob Morane?"
-    my_dict["text"]="Free and natural question, about person characteristics.\n Works for phone number, office, skills and languages."
+    my_dict["title"]="@people What's the phone of John Snow?"
+    my_dict["text"]="Ask a natural question about a person.\n Look for phone number, office, skills and languages."
     result.append(my_dict)
 
     my_dict={}
     my_dict["color"]="#3AA3E3"
     my_dict["attachment_type"]="default"
-    my_dict["title"]="@people Give me people names who worked in angola and have drilling skills."
-    my_dict["text"]="Free and natural question, about searching people..."
+    my_dict["title"]="@people give me names of people who worked in angola and have drilling skills."
+    my_dict["text"]="Ask a natural question to find people..."
     result.append(my_dict)
     attachments=json.dumps(result)
 
@@ -212,6 +212,7 @@ def search_people(url, search_string):
         first_id = json_decode[0]["id"]
     else :
         first_id = None
+
     return textresponse, attachments, first_id
 
 def get_item(ID, item):
@@ -219,7 +220,7 @@ def get_item(ID, item):
     Retrieve item from a person, when its ID is known.
     returns back a text, an attachment per person.
     """
-    authorization_response=oauth.get(url+'/api/v1/users/'+str(ID))
+    authorization_response=oauth.get(people_url_req+'/users/'+str(ID))
     response = authorization_response.content
     #print(response)
     response = response.decode("utf-8")
@@ -236,7 +237,7 @@ def get_item(ID, item):
         entity_string = "unknown" if json_decode["entity"] is None else json_decode["entity"]
         textresponse = "The entity name of %s is *%s*" %(json_decode['first_name'],entity_string)
     elif item == "skills_get":
-        #create the string for the response
+        #create the string for the answer
         nb_skills = len(json_decode["skills"])
         skills_string = ""
         i = 0
@@ -273,7 +274,7 @@ def get_item(ID, item):
     result=[]
     my_dict={}
     my_dict["author_name"]=json_decode['first_name'] + " " + json_decode["last_name"]
-    my_dict["author_link"]=url+"/p/" + json_decode["slugged_id"]
+    my_dict["author_link"]=site+"/p/" + json_decode["slugged_id"]
     my_dict["attachment_type"]="default"
     my_dict["color"]="#3AA3E3"
     my_dict["thumb_url"]=json_decode['picture_url']
@@ -316,12 +317,13 @@ def getwit(text):
     content=resp.content
     content = content.decode("utf-8")
     json_decode=json.loads(content)
-    print(json_decode)
+    #print(json_decode)
+
     #retrieve intent of the user
     action = json_decode["entities"]["intent"][0]["value"]
     action_confidence = json_decode["entities"]["intent"][0]["confidence"]
 
-    #if the user is looking for someone, retrieve location and skills only.
+    #if the user is looking for people, retrieve entities from wit.
     if json_decode["entities"]["intent"][0]["value"]=="search_get":
         search_string = ""
         for entity in json_decode["entities"]:
@@ -353,7 +355,9 @@ def handle_command(url, slack_client, command, channel):
     elif command.startswith("who is"):
         arg = command.replace("who is ",'')
         response, attachement, first_id = search_people(url,arg)
-        response, attachement = retrieve_people(url,first_id)
+        if first_id != None:
+            response, attachement = retrieve_people(url,first_id)
+
 
     elif command.startswith("search"):
         arg = command.replace("search ",'')
