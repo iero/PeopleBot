@@ -17,4 +17,9 @@
     <api_username>prenom.nom@total.com</api_username>
     <api_pwd>XXXXXXXXX</api_pwd>
   </service>
+
+  <service name="wit">
+    <url_req>https://api.wit.ai/message</url_req>
+    <app_id>PBXXXXXXXXXXXXXXXXXXXXXXXXXV3B6</app_id>
+  </service>
 </data>
