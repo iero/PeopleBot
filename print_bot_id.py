@@ -27,7 +27,8 @@ if __name__ == "__main__":
         users = api_call.get('members')
         for user in users:
             # profil = user.get('profile')
-            # print(profil['email'])
+            # if 'email' in profil :
+            #     print("+-[{}] {}".format(user.get('id'),profil['email']))
             if 'name' in user and user.get('name') == BOT_NAME:
                 print("Bot ID for '" + user['name'] + "' is " + user.get('id'))
     else:
