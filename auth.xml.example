@@ -26,5 +26,5 @@
   <service name="stopwords">
     <contact>i,me,someone,people,person</contact>
   </service>
-  
+
 </data>

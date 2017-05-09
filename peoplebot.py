@@ -427,6 +427,7 @@ if __name__ == "__main__":
             bot_token = service.find("bot_token").text
                 #bot_name = service.find("bot_name").text
             bot_id = service.find("bot_id").text
+
         elif service.get("name") == "people" :
             client_id = service.find("api_id").text
             client_secret = service.find("api_secret").text
@@ -438,9 +439,13 @@ if __name__ == "__main__":
             people_url_req=service.find("url_req").text
             people_username = service.find("api_username").text
             people_password = service.find("api_pwd").text
+
         elif service.get("name") == "wit" :
             wit_bearer = service.find("app_id").text
             wit_url = service.find("url_req").text
+
+        elif service.get("name") == "stopwords" :
+            contact_stopwords = service.find("contact").text.split(',')
 
     # instantiate Slack & Twilio clients
     slack_client = SlackClient(bot_token)
