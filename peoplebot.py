@@ -328,7 +328,11 @@ def getWit(wit_bearer, text):
         for entity in json_decode["entities"]:
             if entity != "intent" :
                 for item in json_decode["entities"][entity]:
-                    search_string += " " + item["value"]
+                    #check if the contact item is a stopwords
+                    if entity == 'contact' and item['value'] in contact_stopwords:
+                        del item["value"]
+                    else:
+                        search_string += " " + item["value"]
         person = ""
         person_confidence = ""
     else:
@@ -426,14 +430,12 @@ if __name__ == "__main__":
         elif service.get("name") == "people" :
             client_id = service.find("api_id").text
             client_secret = service.find("api_secret").text
-
             site = service.find("url_site").text
             redirect_uri = service.find("url_redir").text
             people_url_auth = service.find("url_auth").text
             people_url_token = service.find("url_token").text
             people_refresh_url=people_url_token
             people_url_req=service.find("url_req").text
-
             people_username = service.find("api_username").text
             people_password = service.find("api_pwd").text
         elif service.get("name") == "wit" :

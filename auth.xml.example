@@ -22,4 +22,9 @@
     <url_req>https://api.wit.ai/message</url_req>
     <app_id>PBXXXXXXXXXXXXXXXXXXXXXXXXXV3B6</app_id>
   </service>
+
+  <service name="stopwords">
+    <contact>i,me,someone,people,person</contact>
+  </service>
+  
 </data>
