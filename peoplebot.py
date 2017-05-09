@@ -287,7 +287,7 @@ def get_item(ID, item):
     return textresponse, attachments
 
 
-def getwit(text):
+def getWit(wit_bearer, text):
     """
         interact with the wit api.
         send the message from the user, and retrieve its interpretation
@@ -302,9 +302,8 @@ def getwit(text):
         the name extraction, intent of the user's message and wit confidence about it, and the
         created search string.
     """
-    WIT_TOKEN = wit_bearer
     headers = {
-        'Authorization': 'Bearer ' + WIT_TOKEN,
+        'Authorization': 'Bearer ' + wit_bearer,
     }
 
     params = (
@@ -317,7 +316,7 @@ def getwit(text):
     content=resp.content
     content = content.decode("utf-8")
     json_decode=json.loads(content)
-    #print(json_decode)
+    print(json_decode)
 
     #retrieve intent of the user
     action = json_decode["entities"]["intent"][0]["value"]
@@ -342,7 +341,7 @@ def getwit(text):
     return person, person_confidence, action, action_confidence, search_string
 
 
-def handle_command(url, slack_client, command, channel):
+def handle_command(url, slack_client, command, channel, wit_bearer):
     """
         Receives commands directed at the bot and determines if they
         are valid commands. If so, then acts on the commands. If not,
@@ -366,7 +365,7 @@ def handle_command(url, slack_client, command, channel):
         response, attachement, first_id = search_people(url,arg)
 
     else:
-        person, person_confidence, action, action_confidence, search_string = getwit(command)
+        person, person_confidence, action, action_confidence, search_string = getWit(wit_bearer, command)
         #If the intent is to retrieve a specific info for a specific person:
         if action != "profile_get" and action != "search_get" and action_confidence > 0.7:
             response, attachement, first_id = search_people(url,person)
@@ -457,7 +456,7 @@ if __name__ == "__main__":
             command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
             if command and channel:
                 print("+-[{}] {}".format(command,channel))
-                handle_command(people_url_req, slack_client, command, channel)
+                handle_command(people_url_req, slack_client, command, channel, wit_bearer)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
