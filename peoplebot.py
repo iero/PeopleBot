@@ -326,7 +326,7 @@ def getWit(wit_bearer, text):
     if json_decode["entities"]["intent"][0]["value"]=="search_get":
         search_string = ""
         for entity in json_decode["entities"]:
-            if entity != "intent" and entity != "contact":
+            if entity != "intent" #and entity != "contact":
                 for item in json_decode["entities"][entity]:
                     search_string += " " + item["value"]
         person = ""
