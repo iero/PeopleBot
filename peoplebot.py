@@ -379,6 +379,9 @@ def handle_command(url, slack_client, command, channel, wit_bearer):
         #If the intent is to search someone
         elif action == "search_get" and action_confidence > 0.7:
             response, attachement, first_id = search_people(url,search_string)
+            #check of there is a single result. In this case, retrieve the complete profile.
+            if len(json.loads(attachement)) == 1:
+                response, attachement = retrieve_people(url,first_id)
         else:
             response = "I don't know... Use *search* or *who is* commands, and I will look for you!"
             attachement = ""
@@ -399,9 +402,9 @@ def parse_slack_output(bot_id, slack_rtm_output):
     output_list = slack_rtm_output
     if output_list and len(output_list) > 0:
         for output in output_list:
-            if output and 'text' in output and AT_BOT in output['text']:
-                # return text after the @mention, whitespace removed
-                return output['text'].split(AT_BOT)[1].strip().lower(), \
+            if output and 'text' in output and bot_id not in output['user']:
+                # return text after if not sent by the bot, whitespace removed
+                return output['text'].strip().lower(), \
                        output['channel']
     return None, None
 
