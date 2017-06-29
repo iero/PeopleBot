@@ -319,11 +319,16 @@ def getWit(wit_bearer, text):
     print(json_decode)
 
     #retrieve intent of the user
-    if json_decode["entities"]["intent"] :
+    try:
         action = json_decode["entities"]["intent"][0]["value"]
         action_confidence = json_decode["entities"]["intent"][0]["confidence"]
-    else :
+    except KeyError, e:
+        print 'I got a KeyError - reason "%s"' % str(e)
         return
+    except IndexError, e:
+        print 'I got an IndexError - reason "%s"' % str(e)
+        return
+        
     #if the user is looking for people, retrieve entities from wit.
     if json_decode["entities"]["intent"][0]["value"]=="search_get":
         search_string = ""
