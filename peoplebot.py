@@ -78,21 +78,21 @@ def getStats() :
     return textresponse, attachments
 
 
-def retrieve_people(url,ID):
+def retrieve_people(userid,url_site,url_api):
     """
     retrieve person profile from ID in people database
     simple function to retrieve the profile of a person from people database,
     using its ID in the database.
     retrieve_people(ID), where ID is a digits. Example: retrieve_people(1)
     """
-    authorization_response=oauth.get(url+"/users/"+str(ID))
+    authorization_response=oauth.get(url_api+"/users/"+str(userid))
     response = authorization_response.content
     #print(response)
     response = response.decode("utf-8")
     json_decode=json.loads(response)
 
     #create the text of the slackbot response.
-    textresponse="I gess you are looking for (best match):"
+    textresponse="I guess you are looking for"
     #print(json_decode['first_name'])
 
     #create attachements in the slackbot response.
@@ -100,7 +100,7 @@ def retrieve_people(url,ID):
     result=[]
     my_dict={}
     my_dict["author_name"]=json_decode['first_name'] + " " + json_decode["last_name"]
-    my_dict["author_link"]=url+"/p/" + json_decode["slugged_id"]
+    my_dict["author_link"]=url_site+"/p/" + json_decode["slugged_id"]
     my_dict["attachment_type"]="default"
     my_dict["short"]="true"
     #check if 'the' jobs section in people database is populate for the given person.
@@ -192,8 +192,10 @@ def search_people(url, search_string):
     #create attachements
     result=[]
     for item in json_decode:
+        #print(item)
         my_dict={}
         my_dict["title"]=item.get('first_name') + " " + item.get("last_name")
+        my_dict["title_link"]=site+"/p/" + item.get("slugged_id")
         my_dict["text"]=item.get("job_title")
         #y_dict["fallback"]="You did not want more info..."
         #my_dict["callback_id"]="people_userid"
@@ -365,7 +367,7 @@ def getWit(wit_bearer, text):
         print("I got an IndexError - reason {}".format(str(e)))
         return "",0,"",0,""
 
-def handle_command(url, slack_client, command, channel, wit_bearer):
+def handle_command(url_site,url, slack_client, command, channel, wit_bearer):
     """
         Receives commands directed at the bot and determines if they
         are valid commands. If so, then acts on the commands. If not,
@@ -379,7 +381,7 @@ def handle_command(url, slack_client, command, channel, wit_bearer):
         arg = command.replace("who is ",'')
         response, attachement, first_id = search_people(url,arg)
         if first_id != None:
-            response, attachement = retrieve_people(url,first_id)
+            response, attachement = retrieve_people(first_id,url_site,url)
 
 
     elif command.startswith("search"):
@@ -396,13 +398,13 @@ def handle_command(url, slack_client, command, channel, wit_bearer):
         #If the intent is to retrieve the profile of a person:
         if action == "profile_get" and action_confidence > 0.7:
             response, attachement, first_id = search_people(url,person)
-            response, attachement = retrieve_people(url,first_id)
+            response, attachement = retrieve_people(first_id,url_site,url)
         #If the intent is to search someone
         elif action == "search_get" and action_confidence > 0.7:
             response, attachement, first_id = search_people(url,search_string)
             #check of there is a single result. In this case, retrieve the complete profile.
             if len(json.loads(attachement)) == 1:
-                response, attachement = retrieve_people(url,first_id)
+                response, attachement = retrieve_people(first_id,url_site,url)
         elif action == "thanks" and action_confidence > 0.7:
             response = "your're welcome !"
             attachement = ""
@@ -497,7 +499,7 @@ if __name__ == "__main__":
             command, channel = parse_slack_output(bot_id, slack_client.rtm_read())
             if command and channel:
                 print("+-[{}] {}".format(command,channel))
-                handle_command(people_url_req, slack_client, command, channel, wit_bearer)
+                handle_command(site, people_url_req, slack_client, command, channel, wit_bearer)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
