@@ -346,10 +346,10 @@ def getWit(wit_bearer, text):
         return person, person_confidence, action, action_confidence, search_string
     except KeyError as e:
         print("I got an KeyError - reason {}".format(str(e)))
-        return "","","","",""
+        return "",0,"",0,""
     except IndexError as e:
         print("I got an IndexError - reason {}".format(str(e)))
-        return "","","","",""
+        return "",0,"",0,""
 
 def handle_command(url, slack_client, command, channel, wit_bearer):
     """
