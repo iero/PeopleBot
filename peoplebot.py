@@ -323,10 +323,10 @@ def getWit(wit_bearer, text):
         action = json_decode["entities"]["intent"][0]["value"]
         action_confidence = json_decode["entities"]["intent"][0]["confidence"]
     except KeyError as e:
-        print('I got an KeyError - reason {}'.format(str(e))
+        print("I got an KeyError - reason {}".format(str(e)))
         return
     except IndexError as e:
-        print('I got an IndexError - reason {}'.format(str(e))
+        print("I got an IndexError - reason {}".format(str(e)))
         return
 
     #if the user is looking for people, retrieve entities from wit.
