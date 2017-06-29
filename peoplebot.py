@@ -320,8 +320,22 @@ def getWit(wit_bearer, text):
 
     #retrieve intent of the user
     try:
+        if 'thanks' in json_decode["entities"] :
+            action_confidence = json_decode["entities"]["thanks"][0]["confidence"]
+            search_string = ""
+            return "", 0, "thanks", action_confidence, ""
+
+        if 'greetings' in json_decode["entities"] :
+            action_confidence = json_decode["entities"]["greetings"][0]["confidence"]
+            search_string = ""
+            return "", 0, "greetings", action_confidence, ""
+
+
         action = json_decode["entities"]["intent"][0]["value"]
         action_confidence = json_decode["entities"]["intent"][0]["confidence"]
+
+        # if json_decode["entities"][0]=="greetings":
+
 
         #if the user is looking for people, retrieve entities from wit.
         if json_decode["entities"]["intent"][0]["value"]=="search_get":
@@ -376,14 +390,11 @@ def handle_command(url, slack_client, command, channel, wit_bearer):
 
     else:
         person, person_confidence, action, action_confidence, search_string = getWit(wit_bearer, command)
-        #If the intent is to retrieve a specific info for a specific person:
-        if action != "profile_get" and action != "search_get" and action_confidence > 0.7:
-            response, attachement, first_id = search_people(url,person)
-            #check if the person in the request is known in the Database.
-            if first_id != None:
-                response, attachement = get_item(first_id, action)
+        # print(action)
+        # print(action_confidence)
+
         #If the intent is to retrieve the profile of a person:
-        elif action == "profile_get" and action_confidence > 0.7:
+        if action == "profile_get" and action_confidence > 0.7:
             response, attachement, first_id = search_people(url,person)
             response, attachement = retrieve_people(url,first_id)
         #If the intent is to search someone
@@ -392,6 +403,20 @@ def handle_command(url, slack_client, command, channel, wit_bearer):
             #check of there is a single result. In this case, retrieve the complete profile.
             if len(json.loads(attachement)) == 1:
                 response, attachement = retrieve_people(url,first_id)
+        elif action == "thanks" and action_confidence > 0.7:
+            response = "your're welcome !"
+            attachement = ""
+        elif action == "greetings" and action_confidence > 0.7:
+            response = "hello !"
+            attachement = ""
+        #If the intent is to retrieve a specific info for a specific person:
+        #TODO : A ameliorer, catch trop de choses
+        elif action != "profile_get" and action != "search_get" and action_confidence > 0.7:
+            response, attachement, first_id = search_people(url,person)
+            #check if the person in the request is known in the Database.
+            if first_id != None:
+                response, attachement = get_item(first_id, action)
+
         else:
             response = "I don't know... Use *search* or *who is* commands, and I will look for you!"
             attachement = ""
