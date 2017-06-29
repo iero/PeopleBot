@@ -322,7 +322,7 @@ def getWit(wit_bearer, text):
     if json_decode["entities"]["intent"] :
         action = json_decode["entities"]["intent"][0]["value"]
         action_confidence = json_decode["entities"]["intent"][0]["confidence"]
-    else
+    else :
         return
     #if the user is looking for people, retrieve entities from wit.
     if json_decode["entities"]["intent"][0]["value"]=="search_get":
