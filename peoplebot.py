@@ -322,35 +322,34 @@ def getWit(wit_bearer, text):
     try:
         action = json_decode["entities"]["intent"][0]["value"]
         action_confidence = json_decode["entities"]["intent"][0]["confidence"]
+
+        #if the user is looking for people, retrieve entities from wit.
+        if json_decode["entities"]["intent"][0]["value"]=="search_get":
+            search_string = ""
+            for entity in json_decode["entities"]:
+                if entity != "intent" :
+                    for item in json_decode["entities"][entity]:
+                        #check if the contact item is a stopwords
+                        if entity == 'contact' and item['value'] in contact_stopwords:
+                            del item["value"]
+                        else:
+                            search_string += " " + item["value"]
+            person = ""
+            person_confidence = ""
+        else:
+            #retrieve people name from the user request
+            person = json_decode["entities"]["contact"][0]["value"]
+            person_confidence = json_decode["entities"]["contact"][0]["confidence"]
+            search_string = ""
+        #print(person, person_confidence, action, action_confidence, search_string)
+
+        return person, person_confidence, action, action_confidence, search_string
     except KeyError as e:
         print("I got an KeyError - reason {}".format(str(e)))
-        return
+        return "","","","",""
     except IndexError as e:
         print("I got an IndexError - reason {}".format(str(e)))
-        return
-
-    #if the user is looking for people, retrieve entities from wit.
-    if json_decode["entities"]["intent"][0]["value"]=="search_get":
-        search_string = ""
-        for entity in json_decode["entities"]:
-            if entity != "intent" :
-                for item in json_decode["entities"][entity]:
-                    #check if the contact item is a stopwords
-                    if entity == 'contact' and item['value'] in contact_stopwords:
-                        del item["value"]
-                    else:
-                        search_string += " " + item["value"]
-        person = ""
-        person_confidence = ""
-    else:
-        #retrieve people name from the user request
-        person = json_decode["entities"]["contact"][0]["value"]
-        person_confidence = json_decode["entities"]["contact"][0]["confidence"]
-        search_string = ""
-    #print(person, person_confidence, action, action_confidence, search_string)
-
-    return person, person_confidence, action, action_confidence, search_string
-
+        return "","","","",""
 
 def handle_command(url, slack_client, command, channel, wit_bearer):
     """
